@@ -159,4 +159,4 @@ Shifted Window 기반 구조를 통해 **다양한 스케일의 패턴을 효과
 ![Flowchart](flow_chart.PNG)
 
 ## 📰 웹 서비스 구현 영상
-![Web](wep.mp4)
+[Web](./wep.mp4)
