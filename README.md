@@ -48,14 +48,14 @@ ASHA(미국 언어청각협회)의 발달 기준을 참고하여 개월 수 기�
 ## 📰 데이터 전처리
 
 ### 오디오 전처리 단계
-1. **Sampling Rate 통일**  
-   - 모든 음성을 44kHz로 변환하여 모델 입력 형식 일관성 확보
+1. **파일 형식 및 Sampling Rate 통일**
+   - 모든 음성을 wav파일, SR 44kHz로 변환하여 모델 입력 형식 일관성 확보
 
-2. **Noise Reduction (노이즈 제거)**  
+3. **Noise Reduction (노이즈 제거)**  
    - 배경 소음, 부모 음성, 무음 구간 등을 최대한 제거  
    - 기본적인 필터링 및 에너지 기반 검출 적용
 
-3. **Mel-Spectrogram 변환**  
+4. **Mel-Spectrogram 변환**  
    - 음성 신호를 2D 이미지 형태로 변환  
    - CNN/Transformer 모델의 입력에 적합하도록 처리  
    
@@ -65,7 +65,7 @@ ASHA(미국 언어청각협회)의 발달 기준을 참고하여 개월 수 기�
 ### 전처리 결과 예시
 - Mel-Spectrogram 이미지 형태로 모델 입력 구성
 - 클래스별 평균 발화 길이 및 스펙트럼 구조 차이 확인 가능
-
+![스펙트로그램 예시](./Mel-Spectrogram.png)
 ---
 ## 📰 모델 구조
 ### ResNet-34 기반 모델
@@ -83,4 +83,73 @@ ASHA(미국 언어청각협회)의 발달 기준을 참고하여 개월 수 기�
   - **W-MSA (Window-based Multi-Head Self-Attention)**
   - **SW-MSA (Shifted Window MSA)**
   - Patch Merging을 통해 계층적으로 축소된 피처 맵 생성 -> 특징 효과적으로 추출
+
+---
+
+## 모델 성능 평가
+### 성능 비교 (ResNet-34 vs Swin-Transformer)
+
+| Model            | Accuracy (%) | Precision (%) |
+|------------------|--------------|----------------|
+| **ResNet-34**        | 63.29        | 64.76          |
+| **Swin-Transformer** | **68.42**    | **69.07**      |
+
+Swin-Transformer는 ResNet-34보다 파라미터 수가 많고 모델이 더 무겁지만,  
+Shifted Window 기반 구조를 통해 **다양한 스케일의 패턴을 효과적으로 학습**하는 장점을 가진다.  
+이러한 구조적 특성 덕분에 Swin-Transformer는 Accuracy 기준 약 **5% 향상된 성능**을 기록했다.
+
+---
+
+### Swin-Transformer 최종 하이퍼파라미터
+
+| Hyperparameter | Value                |
+|----------------|----------------------|
+| epoch          | 25                   |
+| learning_rate  | 0.0001               |
+| batch_size     | 32                   |
+| optimizer      | AdamW                |
+| scheduler      | CosineAnnealingLR    |
+
+
+---
+
+## 📰 AI Agent 기반 모델 개선 및 웹 서비스 구현
+
+### AI Agent 기반 반복 학습(Feedback Loop)
+
+본 프로젝트에서는 초기 모델의 데이터 수 제한과 성능 저하 문제를 보완하기 위해  
+**AI Agent 기반 반복 학습(Feedback Loop)** 전략을 적용하였다.
+
+- Agent가 모델 출력과 오류 구간을 자동 분석  
+- 잘못 분류된 샘플에 대해 추가적인 Feature 보정 가이드 생성  
+- 모델이 반영할 수 있도록 반복적으로 파라미터 및 Feature를 조정  
+- 작은 데이터에서도 성능을 개선할 수 있는 효과 제공  
+
+이 과정을 통해 Swin-Transformer모델 대비 F1-Score, Precision 약 1%, 6% 증가하였다.
+
+---
+
+### 웹 서비스 구현
+
+최종 모델은 웹 환경에서 실제로 활용할 수 있도록 **Flask 기반 웹 페이지**로 구현하였다.
+
+#### 주요 기능
+- 음성 파일 업로드 기능 제공  
+- 업로드된 아동 발화 음성을 실시간 전처리(Mel-Spectrogram 변환)  
+- Swin-Transformer 기반 모델로 발달 단계 예측  
+- 결과를 텍스트로 사용자에게 제공  
+
+#### 기술 스택
+- Backend: **Python Flask**  
+- Frontend: **HTML / CSS / JavaScript**  
+
+
+#### 구현 목적
+- 모델 성능을 단순 수치로 끝내지 않고,  
+  **부모·교사·연구자가 쉽게 사용할 수 있는 형태로 제공하기 위함**  
+- 실제 서비스 형태로 동작시키며 모델의 실용성과 활용 가능성을 검증  
+
+---
+
+이 과정을 통해  **AI 모델 개발 → 반복 개선(AI Agent) → 실서비스 구현**으로 이어지는 완전한 End-to-End 워크플로우를 구축하였다.
 
