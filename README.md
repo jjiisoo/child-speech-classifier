@@ -65,7 +65,7 @@ ASHA(미국 언어청각협회)의 발달 기준을 참고하여 개월 수 기�
 ### 전처리 결과 예시
 - Mel-Spectrogram 이미지 형태로 모델 입력 구성
 - 클래스별 평균 발화 길이 및 스펙트럼 구조 차이 확인 가능
-![스펙트로그램 예시](./Mel-Spectrogram.png)
+![스펙트로그램 예시](./Mel-Spectrogram.PNG)
 ---
 ## 📰 모델 구조
 ### ResNet-34 기반 모델
@@ -154,6 +154,6 @@ Shifted Window 기반 구조를 통해 **다양한 스케일의 패턴을 효과
 이 과정을 통해  **AI 모델 개발 → 반복 개선(AI Agent) → 실서비스 구현**으로 이어지는 완전한 End-to-End 워크플로우를 구축하였다.
 
 ## 프로젝트 전체 플로우차트
-![Flowchart](flowchart.png)
+![Flowchart](flowchart.PNG)
 
 
