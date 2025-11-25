@@ -160,5 +160,4 @@ Shifted Window 기반 구조를 통해 **다양한 스케일의 패턴을 효과
 
 ## 📰 웹 서비스 구현 영상
 ![Web](wep_homepage.png)
-
-▶ 전체 영상 보기: ![w](wep.mp4)
+[▶ 영상 보기](wep.mp4)
