@@ -1,10 +1,86 @@
 # 아동 음성 분석을 통한 SELSI 기준 표현 언어 발달 단계 분류
 
 ## 📰 연구배경
-언어 발달은 아동의 사회적·인지 발달에 핵심적인 역할을 한다. 일부 아동은 또래보다 언어 발달이 늦게 나타나며, 조기 진단과 개입이 매우 중요합니다. 국내에서는 SELSI(영유아 언어발달 검사)를 통해 평가하며, 조기 개입이 언어 능력 향상에 효과가 있음이 보고되었다.
-하지만 기존 SELSI 검사는 전문가 평가와 시간이 필요해 효율성이 낮다. 최근에는 AI와 딥러닝을 활용해 아동 발화를 분석하고 언어 발달 단계를 자동 분류하려는 연구가 진행되고 있다. 본 프로젝트는 아동 실제 음성을 기반으로 SELSI 표현 언어 단계를 자동 분류하여, 조기 선별과 실용성을 동시에 갖춘 진단 시스템을 개발하는 것을 목표로 한다.
+아동의 언어 발달은 사회적·인지적 성장의 핵심 지표이며, 조기 진단 여부는 이후 학습 능력과 행동 발달에 큰 영향을 미친다. 국내에서는 SELSI가 표준 진단 도구로 널리 활용되지만 문항 기반 평가 특성상 전문가의 해석이 필요해 시간과 비용이 많이 든다는 한계가 있다. 또한 아동의 언어 발달과 관련된 기존 연구는 텍스트 기반 분석이 중심이어서 억양, 피치, 발화 속도 등 음성 신호의 중요한 정보를 충분히 반영하지 못한다. 
+본 프로젝트는 이러한 한계를 보완하기 위해, 실제 아동 음성 데이터를 기반으로 SELSI 기준 표현 언어 발달 단계를 자동 분류하는 모델을 구축하는 것을 목표로 한다.
 
 ---
 
-## 데이터 구성
+## Tech Stack
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white) ![Librosa](https://img.shields.io/badge/Librosa-000000?style=for-the-badge&logo=python&logoColor=white) ![NumPy](https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white) ![Matplotlib](https://img.shields.io/badge/Matplotlib-11557C?style=for-the-badge&logo=matplotlib&logoColor=white) ![Scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)
+
+---
+
+## 📰 데이터 구성
+
+*SELSI 기반 표현 언어 발달 단계 분류를 위한 아동 자연 발화 음성 데이터셋* (직접 수집)
+
+### 데이터 수집 기준
+SELSI(영유아 언어발달 검사)는 생후 4~35개월 영유아의 언어 능력을 평가하기 위한 국내 표준화 도구이며,  
+수용 언어와 표현 언어 두 영역으로 구성되어 있다.  
+
+본 프로젝트에서는 **표현 언어 영역**에 해당하는 항목을 기반으로 데이터를 수집하였다.  
+SELSI 문항 중 단편적 기준으로 판단하기 어려운 항목을 제외하고, **총 37개 문항**을 최종 활용하였다.
+
+### 데이터 수집 방식
+- SELSI 표현 언어 항목과 개월 수 기준에 맞는 영상·음성을 공개 플랫폼(YouTube, SNS 등)에서 수집  
+- 아동 자연 발화 음성만 사용  
+- 부모 음성이 포함된 경우 최대한 제거했으나 일부 구간은 완전 제거에 기술적 한계 존재  
+- 모든 음성은 Mel-Spectrogram으로 변환하여 비식별화 처리 후 사용
+- 데이터는 학술적 연구 목적에 한해 사용하며 상업적 용도는 포함하지 않음
+
+### 클래스 구성 (총 5개 클래스)
+ASHA(미국 언어청각협회)의 발달 기준을 참고하여 개월 수 기준으로 5개의 클래스 구간을 설정하였다.
+
+| Class | Age Range (months) | Number of Samples | Avg Length (s) |
+|-------|---------------------|-------------------|----------------|
+| 0     | 0–11               | 147               | 2.06           |
+| 1     | 12–17              | 151               | 1.44           |
+| 2     | 18–23              | 150               | 1.46           |
+| 3     | 24–29              | 150               | 2.33           |
+| 4     | 30–35              | 150               | 2.48           |
+
+총 5개 클래스, **748개 음성 데이터**로 구성된 데이터셋을 구축하였다.  
+아동 발달에 따라 평균 발화 길이가 점차 증가하는 경향을 확인할 수 있다.
+
+---
+## 📰 데이터 전처리
+
+### 오디오 전처리 단계
+1. **Sampling Rate 통일**  
+   - 모든 음성을 44kHz로 변환하여 모델 입력 형식 일관성 확보
+
+2. **Noise Reduction (노이즈 제거)**  
+   - 배경 소음, 부모 음성, 무음 구간 등을 최대한 제거  
+   - 기본적인 필터링 및 에너지 기반 검출 적용
+
+3. **Mel-Spectrogram 변환**  
+   - 음성 신호를 2D 이미지 형태로 변환  
+   - CNN/Transformer 모델의 입력에 적합하도록 처리  
+   
+5. **데이터셋 분리**  
+   - Train / Test = **9 : 1** 비율로 구성
+
+### 전처리 결과 예시
+- Mel-Spectrogram 이미지 형태로 모델 입력 구성
+- 클래스별 평균 발화 길이 및 스펙트럼 구조 차이 확인 가능
+
+---
+## 📰 모델 구조
+### ResNet-34 기반 모델
+- 이미지 분류 분야에서 널리 사용되는 대표적인 Residual Network  
+- 기울기 소실 문제를 해결하기 위해 **Skip Connection**을 도입한 구조  
+- 본 연구에서는 **사전학습(Pretrained) 가중치 적용** 후 학습 진행
+
+### Swin-Transformer 기반 모델
+- Vision Transformer(ViT)를 기반으로 한 **Shifted Window Attention** 구조
+- 다양한 스케일의 시각 정보를 처리하기 위해 윈도우 단위 Self-Attention 활용
+- 입력 특징: Mel-Spectrogram 이미지
+- 핵심 구조:
+  - Patch Partition으로 입력을 일정 크기 패치로 분할  
+  - Linear Embedding을 통해 채널 수 조정
+  - **W-MSA (Window-based Multi-Head Self-Attention)**
+  - **SW-MSA (Shifted Window MSA)**
+  - Patch Merging을 통해 계층적으로 축소된 피처 맵 생성 -> 특징 효과적으로 추출
 
